@@ -107,6 +107,21 @@ defmodule PolymorphicEmbed do
               field_options
             )
 
+          array? and is_map(params_for_field) ->
+            params_for_field =
+              params_for_field
+              |> Enum.map(&key_as_int/1)
+              |> Enum.sort
+              |> Enum.map(&elem(&1, 1))
+
+              cast_polymorphic_embeds_many(
+                changeset,
+                field,
+                changeset_fun,
+                params_for_field,
+                field_options
+              )
+
           not array? and is_map(params_for_field) ->
             cast_polymorphic_embeds_one(
               changeset,
@@ -392,4 +407,12 @@ defmodule PolymorphicEmbed do
       acc
     end
   end
+
+  defp key_as_int({key, val}) when is_binary(key) do
+    case Integer.parse(key) do
+      {key, ""} -> {key, val}
+      _ -> {key, val}
+    end
+  end
+  defp key_as_int(key_val), do: key_val
 end
