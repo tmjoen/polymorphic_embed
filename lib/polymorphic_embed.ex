@@ -96,6 +96,9 @@ defmodule PolymorphicEmbed do
       {:ok, map} when map == %{} and not array? ->
         changeset
 
+      {:ok, ""} when array? ->
+        Ecto.Changeset.put_change(changeset, field, [])
+
       {:ok, params_for_field} ->
         cond do
           array? and is_list(params_for_field) ->
