@@ -175,6 +175,9 @@ defmodule PolymorphicEmbed do
       :type_not_found when on_type_not_found == :changeset_error ->
         Ecto.Changeset.add_error(changeset, field, "is invalid")
 
+      :type_not_found when on_type_not_found == :nilify ->
+        Ecto.Changeset.put_change(changeset, field, nil)
+
       struct ->
         embed_changeset = changeset_fun.(struct, params)
 
@@ -215,6 +218,9 @@ defmodule PolymorphicEmbed do
           nil when on_type_not_found == :changeset_error ->
             :error
 
+          nil when on_type_not_found == :ignore ->
+            :ignore
+
           module ->
             embed_changeset = changeset_fun.(struct(module), params)
 
@@ -233,6 +239,8 @@ defmodule PolymorphicEmbed do
     if Enum.any?(embeds, &(&1 == :error)) do
       Ecto.Changeset.add_error(changeset, field, "is invalid")
     else
+      embeds = Enum.filter(embeds, &(&1 != :ignore))
+
       any_invalid? =
         Enum.any?(embeds, fn
           %{valid?: false} -> true
